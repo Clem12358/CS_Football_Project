@@ -289,7 +289,7 @@ else:
 
 ################### Rankings and Team Data Processing ##############################
 
-# user inputs for rankings and last 5 games
+# user inputs for rankings and last 5 games (home + away)
 form_col1, form_col2 = st.columns(2)
 
 with form_col1:
@@ -312,7 +312,7 @@ with form_col1:
         value=5,
     )
     wins_home_last5 = st.number_input(
-        "Home team – number of wins in last 5 games",
+        "Home team – wins in last 5 games (last 5)",
         min_value=0,
         max_value=5,
         value=3,
@@ -338,52 +338,142 @@ with form_col2:
         value=4,
     )
     wins_away_last5 = st.number_input(
-        "Away team – number of wins in last 5 games",
+        "Away team – wins in last 5 games",
         min_value=0,
         max_value=5,
         value=2,
     )
 
+# --- stadium features for the model (uses your team_data dict) ---
+home_team_info = team_data.get(home_team)
+max_capacity_feature = home_team_info["max_capacity"] if home_team_info else 0
+
+# mark which stadiums have (mostly) a full roof – adjust if needed
+full_roof_map = {
+    "Club Brugge": 0,
+    "Cercle Brugge": 0,
+    "Genk": 0,
+    "RSC Anderlecht": 1,
+    "Union SG": 0,
+    "KAA Gent": 0,
+    "Royal Antwerp": 0,
+    "KVC Westerlo": 0,
+    "Standard Liège": 0,
+    "KV Mechelen": 0,
+    "R Charleroi SC": 0,
+    "OH Leuven": 0,
+    "Sint-Truiden": 0,
+    "FCV Dender EH": 0,
+    "Zulte Waregem": 0,
+    "La Louvière": 0,
+}
+full_roof_feature = float(full_roof_map.get(home_team, 0))
+
+# --- simple derby flag between specific pairs ---
+derby_pairs = {
+    ("Club Brugge", "Cercle Brugge"),
+    ("RSC Anderlecht", "Union SG"),
+    # add more if you want
+}
+
+is_derby = int(
+    (home_team, away_team) in derby_pairs
+    or (away_team, home_team) in derby_pairs
+)
+
+# --- team categories from ranking (for the Home/Opposing team Category_* dummies) ---
+def categorize_team(r):
+    if r is None:
+        return "Unknown"
+    try:
+        r = int(r)
+    except ValueError:
+        return "Unknown"
+
+    if r <= 4:
+        return "Top ranked"
+    elif r <= 8:
+        return "Medium ranked"
+    elif r <= 16:
+        return "Bottom ranked"
+    else:
+        return "Not ranked"
+
+home_team_category = categorize_team(ranking_home_team)
+opposing_team_category = categorize_team(ranking_away_team)
+
+# --- game day (Weekday / Weekend) for Game day_* dummies ---
+game_day = "Weekend" if match_date.weekday() >= 5 else "Weekday"
+
+# --- time slot (Afternoon / Evening / Night) for Time slot_* dummies ---
+if 12 <= match_hour < 17:
+    time_slot = "Afternoon"
+elif 17 <= match_hour < 22:
+    time_slot = "Evening"
+else:
+    time_slot = "Night"
+
+# --- Weather GoodBad (Good / Bad) based on your rule ---
+good_conditions = ["Clear or mostly clear", "Partly cloudy"]
+bad_conditions = ["Rainy", "Drizzle", "Snowy"]
+
+if 'weather_condition' in locals() and weather_condition is not None:
+    if weather_condition in good_conditions:
+        weather_goodbad = "Good"
+    elif weather_condition in bad_conditions:
+        weather_goodbad = "Bad"
+    else:
+        weather_goodbad = "Good"  # neutral default, can set to "Bad" if you prefer
+else:
+    weather_goodbad = "Good"
 
 
 ################### Preparing Input Data for the Model ##############################
 
 # Define the input features for the prediction model
 input_features = {
+    # basic match info
     'Matchday': matchday,
     'Time': match_hour,
     'Home Team': home_team,
-    'Ranking Home Team': float(ranking_home_team),
     'Away Team': away_team,
-    'Ranking Away Team': float(ranking_away_team),
-
-    'Weather': weather_condition if 'weather_condition' in locals() else 'Unknown',
-    'Temperature (°C)': float(temperature_at_match) if 'temperature_at_match' in locals() and temperature_at_match is not None else 0.0,
     'Weekday': match_date.strftime("%A"),
     'Month': match_date.month,
     'Day': match_date.day,
 
-    # home team recent form
+    # rankings
+    'Ranking Home Team': float(ranking_home_team),
+    'Ranking Away Team': float(ranking_away_team),
+
+    # recent form – home team, as in your training set
     'Goals Scored in Last 5 Games': float(goals_scored_home_last5),
     'Goals Conceded in Last 5 Games': float(goals_conceded_home_last5),
     'Number of Wins in Last 5 Games': float(wins_home_last5),
 
-    # map last-5 goals into these two features (even if in training they might have had a slightly different meaning)
+    # map last-5 goals into these features (so nothing stays at 0)
     'Home Team Goals Scored': float(goals_scored_home_last5),
     'Away Team Goals Scored': float(goals_scored_away_last5),
+
+    # weather (raw condition + numeric temperature)
+    'Weather': weather_condition if 'weather_condition' in locals() else 'Unknown',
+    'Temperature (°C)': float(temperature_at_match) if 'temperature_at_match' in locals() and temperature_at_match is not None else 0.0,
 
     # stadium features
     'Derby': float(is_derby),
     'Max Capacity': float(max_capacity_feature),
-    'Full Roof': full_roof_feature,
+    'Full Roof': float(full_roof_feature),
 
-    # macro features – if you don’t have live values, keep them neutral for now
+    # macro features – keep neutral for now unless you add extra inputs
     'GDP_Real_lagQ': 0.0,
     'CPI_QoQ_Growth_%_lagQ': 0.0,
     'Employment_Rate_%_lagQ': 0.0,
 
-    # optional: only if model was trained with this column
-    # 'Weather GoodBad': weather_goodbad,
+    # extra categorical vars for dummies
+    'Home team Category': home_team_category,
+    'Opposing team Category': opposing_team_category,
+    'Game day': game_day,
+    'Time slot': time_slot,
+    'Weather GoodBad': weather_goodbad,
 }
 
 # Convert the input features into a DataFrame
@@ -668,7 +758,19 @@ expected_columns_without_weather = [
 ]
 
 # Perform one-hot encoding for categorical columns (we'll only keep what we need afterwards)
-categorical_columns = ["Matchday", "Home Team", "Away Team", "Weather", "Weekday"]
+categorical_columns = [
+    "Matchday",
+    "Home Team",
+    "Away Team",
+    "Weather",
+    "Weekday",
+    "Home team Category",
+    "Opposing team Category",
+    "Game day",
+    "Time slot",
+    "Weather GoodBad",
+]
+
 
 encoded_df = pd.get_dummies(pd.DataFrame([input_features]), columns=categorical_columns, drop_first=False)
 
