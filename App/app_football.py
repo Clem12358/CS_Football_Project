@@ -24,8 +24,8 @@ BASE_DIR = APP_DIR.parent                       # project root
 MODELS_DIR = BASE_DIR / "Models"
 
 # Load models
-model_with_weather = load_model(MODELS_DIR / "finalized_model_with_weather (1).sav")
-model_without_weather = load_model(MODELS_DIR / "finalized_model_without_weather.sav")
+model_with_weather = load_model(MODELS_DIR / "finalized_model_with_weather (2).sav")
+model_without_weather = load_model(MODELS_DIR / "finalized_model_without_weather (1).sav")
 
 # Configure Streamlit page
 st.set_page_config(
