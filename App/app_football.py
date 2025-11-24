@@ -325,26 +325,7 @@ input_df = pd.DataFrame([input_features])
 
 # List of expected columns for the model
 expected_columns = [
-    'Time', 'Ranking Home Team', 'Ranking Away Team', 'Temperature (°C)', 'Month', 'Day',
-    'Goals Scored in Last 5 Games', 'Goals Conceded in Last 5 Games', 'Number of Wins in Last 5 Games',
-    'Competition_Super League', 'Competition_Swiss Cup', 'Competition_UEFA Champions League',
-    'Competition_UEFA Conference League', 'Competition_UEFA Europa League', 'Matchday_10', 'Matchday_11', 'Matchday_12', 'Matchday_13',
-    'Matchday_14', 'Matchday_15', 'Matchday_16', 'Matchday_17', 'Matchday_18', 'Matchday_19',
-    'Matchday_2', 'Matchday_20', 'Matchday_21', 'Matchday_22', 'Matchday_23', 'Matchday_24', 'Matchday_25',
-    'Matchday_26', 'Matchday_27', 'Matchday_28', 'Matchday_29', 'Matchday_3', 'Matchday_30', 'Matchday_31',
-    'Matchday_32', 'Matchday_33', 'Matchday_34', 'Matchday_35', 'Matchday_36', 'Matchday_37', 'Matchday_38', 
-    'Matchday_4', 'Matchday_5', 'Matchday_6', 'Matchday_7',
-    'Matchday_8', 'Matchday_9', 
-    'Matchday_Group Stage',
-    'Matchday_Knockout Stage', 'Matchday_Qualification', 'Home Team_FC Basel', 'Home Team_FC Lugano',
-    'Home Team_FC Luzern', 'Home Team_FC Sion', 'Home Team_FC St. Gallen', 'Home Team_FC Winterthur',
-    'Home Team_FC Zürich', 'Home Team_Grasshoppers', 'Home Team_Lausanne-Sport', 'Home Team_Servette FC',
-    'Home Team_Yverdon Sport', 'Away Team_FC Basel', 'Away Team_FC Lugano', 'Away Team_FC Luzern',
-    'Away Team_FC Sion', 'Away Team_FC St. Gallen', 'Away Team_FC Winterthur', 'Away Team_FC Zürich',
-    'Away Team_Grasshoppers', 'Away Team_Lausanne-Sport', 'Away Team_Servette FC', 'Away Team_Unknown',
-    'Away Team_Yverdon Sport', 'Weather_Drizzle', 'Weather_Partly cloudy', 'Weather_Rainy',
-    'Weather_Snowy', 'Weekday_Monday', 'Weekday_Saturday', 'Weekday_Sunday', 'Weekday_Thursday',
-    'Weekday_Tuesday', 'Weekday_Wednesday'
+    Time', 'Ranking Home Team', 'Ranking Away Team', 'Attendance', 'Temperature (°C)', 'Date', 'Month', 'Season', 'Stadium', 'Max Capacity', 'City', 'Province', 'Full Roof', 'PercentageAttendance', 'GDP_Real_lagQ', 'CPI_QoQ_Growth_%_lagQ', 'Employment_Rate_%_lagQ', 'Home Team Goals Scored', 'Away Team Goals Scored', 'Match Type', 'Home Team Outcome', 'Away Team Outcome', 'Day', 'Goals Scored in Last 5 Games', 'Goals Conceded in Last 5 Games', 'Number of Wins in Last 5 Games', 'Derby', 'Matchday_10', 'Matchday_11', 'Matchday_12', 'Matchday_13', 'Matchday_14', 'Matchday_15', 'Matchday_16', 'Matchday_17', 'Matchday_18', 'Matchday_19', 'Matchday_2', 'Matchday_20', 'Matchday_21', 'Matchday_22', 'Matchday_23', 'Matchday_24', 'Matchday_25', 'Matchday_26', 'Matchday_27', 'Matchday_28', 'Matchday_29', 'Matchday_3', 'Matchday_30', 'Matchday_31', 'Matchday_32', 'Matchday_33', 'Matchday_34', 'Matchday_4', 'Matchday_5', 'Matchday_6', 'Matchday_7', 'Matchday_8', 'Matchday_9', 'Matchday_Final', 'Matchday_final 2nd leg', 'Home Team_Club Brugge', 'Home Team_FCV Dender EH', 'Home Team_Genk', 'Home Team_KAA Gent', 'Home Team_KV Mechelen', 'Home Team_KVC Westerlo', 'Home Team_OH Leuven', 'Home Team_R Charleroi SC', 'Home Team_RSC Anderlecht', 'Home Team_Royal Antwerp', 'Home Team_Sint-Truiden', 'Home Team_Standard Liège', 'Home Team_Union SG', 'Home Team_Zulte Waregem', 'Away Team_Club Brugge', 'Away Team_FCV Dender EH', 'Away Team_Genk', 'Away Team_KAA Gent', 'Away Team_KV Mechelen', 'Away Team_KVC Westerlo', 'Away Team_OH Leuven', 'Away Team_R Charleroi SC', 'Away Team_RSC Anderlecht', 'Away Team_Royal Antwerp', 'Away Team_Sint-Truiden', 'Away Team_Standard Liège', 'Away Team_Union SG', 'Away Team_Unknown', 'Away Team_Zulte Waregem', 'Weekday_Monday', 'Weekday_Saturday', 'Weekday_Sunday', 'Weekday_Thursday', 'Weekday_Tuesday', 'Weekday_Wednesday', 'Opposing team Category_Bottom ranked', 'Opposing team Category_Medium ranked', 'Opposing team Category_Not ranked', 'Opposing team Category_Top ranked', 'Opposing team Category_Unknown', 'Home team Category_Bottom ranked', 'Home team Category_Medium ranked', 'Home team Category_Not ranked', 'Home team Category_Top ranked', 'Home team Category_Unknown', 'Game day_Weekday', 'Game day_Weekend', 'Time slot_Afternoon', 'Time slot_Evening', 'Time slot_Night', 'Weather GoodBad_Bad', 'Weather GoodBad_Good', 'Weather_Clear or mostly clear', 'Weather_Drizzle', 'Weather_Partly cloudy', 'Weather_Rainy', 'Weather_Snowy', 'match_id'
 ]
 
 # Perform one-hot encoding for categorical columns
@@ -374,18 +355,76 @@ if missing_columns:
 
 # Define team-specific data, including stadium capacity and attendance thresholds
 team_data = {
-    "BSC Young Boys": {"max_capacity": 31783, "attendance_30th_percentile": 25282.1, "attendance_70th_percentile": 31120.0},
-    "FC Basel": {"max_capacity": 38512, "attendance_30th_percentile": 19527.0, "attendance_70th_percentile": 22666.5},
-    "FC Lugano": {"max_capacity": 6330, "attendance_30th_percentile": 2843.5, "attendance_70th_percentile": 3509.6},
-    "FC Luzern": {"max_capacity": 16800, "attendance_30th_percentile": 10105.5, "attendance_70th_percentile": 13171.9},
-    "FC Sion": {"max_capacity": 16232, "attendance_30th_percentile": 6500.0, "attendance_70th_percentile": 9480.0},
-    "FC St. Gallen": {"max_capacity": 20029, "attendance_30th_percentile": 15683.8, "attendance_70th_percentile": 18482.3},
-    "FC Winterthur": {"max_capacity": 8550, "attendance_30th_percentile": 5100.0, "attendance_70th_percentile": 8400.0},
-    "FC Zürich": {"max_capacity": 26104, "attendance_30th_percentile": 10870.0, "attendance_70th_percentile": 15393.0},
-    "Grasshoppers": {"max_capacity": 26104, "attendance_30th_percentile": 4049.6, "attendance_70th_percentile": 5879.0},
-    "Lausanne-Sport": {"max_capacity": 12544, "attendance_30th_percentile": 3773.6, "attendance_70th_percentile": 5728.0},
-    "Servette FC": {"max_capacity": 30084, "attendance_30th_percentile": 6076.6, "attendance_70th_percentile": 10860.1},
-    "Yverdon Sport": {"max_capacity": 6600, "attendance_30th_percentile": 712.6, "attendance_70th_percentile": 2400.0}
+    "Club Brugge": {
+        "max_capacity": 29062,
+        "attendance_30th_percentile": 19951.5,
+        "attendance_70th_percentile": 24402.5,
+    },
+    "FCV Dender EH": {
+        "max_capacity": 6200,
+        "attendance_30th_percentile": 2459.4,
+        "attendance_70th_percentile": 3561.5,
+    },
+    "Genk": {
+        "max_capacity": 23500,
+        "attendance_30th_percentile": 14907.0,
+        "attendance_70th_percentile": 18352.6,
+    },
+    "KAA Gent": {
+        "max_capacity": 20000,
+        "attendance_30th_percentile": 12570.6,
+        "attendance_70th_percentile": 16882.8,
+    },
+    "KV Mechelen": {
+        "max_capacity": 16500,
+        "attendance_30th_percentile": 11229.2,
+        "attendance_70th_percentile": 14486.0,
+    },
+    "KVC Westerlo": {
+        "max_capacity": 8000,
+        "attendance_30th_percentile": 4848.3,
+        "attendance_70th_percentile": 6133.9,
+    },
+    "OH Leuven": {
+        "max_capacity": 10500,
+        "attendance_30th_percentile": 5482.1,
+        "attendance_70th_percentile": 7002.4,
+    },
+    "R Charleroi SC": {
+        "max_capacity": 15000,
+        "attendance_30th_percentile": 6000.0,
+        "attendance_70th_percentile": 8533.0,
+    },
+    "RSC Anderlecht": {
+        "max_capacity": 22500,
+        "attendance_30th_percentile": 18000.0,
+        "attendance_70th_percentile": 20100.0,
+    },
+    "Royal Antwerp": {
+        "max_capacity": 16644,
+        "attendance_30th_percentile": 12000.0,
+        "attendance_70th_percentile": 14941.4,
+    },
+    "Sint-Truiden": {
+        "max_capacity": 14600,
+        "attendance_30th_percentile": 4345.0,
+        "attendance_70th_percentile": 6000.0,
+    },
+    "Standard Liège": {
+        "max_capacity": 27670,
+        "attendance_30th_percentile": 16623.0,
+        "attendance_70th_percentile": 21113.0,
+    },
+    "Union SG": {
+        "max_capacity": 9400,
+        "attendance_30th_percentile": 6173.4,
+        "attendance_70th_percentile": 7256.0,
+    },
+    "Zulte Waregem": {
+        "max_capacity": 12400,
+        "attendance_30th_percentile": 6626.6,
+        "attendance_70th_percentile": 7953.5,
+    },
 }
 
 # Predict attendance when the user clicks the button
