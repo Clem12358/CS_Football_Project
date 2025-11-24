@@ -239,8 +239,8 @@ stadium_coordinates = {
 # Fetch weather data based on home team and match information
 if home_team and match_date and match_time:
     coordinates = stadium_coordinates[home_team]
-    latitude = coordinates['latitude']
-    longitude = coordinates['longitude']
+    latitude = coordinates['lat']
+    longitude = coordinates['lon']
     temperature_at_match, weather_condition = get_weather_data(latitude, longitude, match_date, match_hour)
 
 # Weather display and emoji mapping logic
