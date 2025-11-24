@@ -344,6 +344,81 @@ with form_col2:
         value=2,
     )
 
+# Define team-specific data, including stadium capacity and attendance thresholds
+team_data = {
+    "Club Brugge": {
+        "max_capacity": 29062,
+        "attendance_30th_percentile": 19951.5,
+        "attendance_70th_percentile": 24402.5,
+    },
+    "FCV Dender EH": {
+        "max_capacity": 6200,
+        "attendance_30th_percentile": 2459.4,
+        "attendance_70th_percentile": 3561.5,
+    },
+    "Genk": {
+        "max_capacity": 23500,
+        "attendance_30th_percentile": 14907.0,
+        "attendance_70th_percentile": 18352.6,
+    },
+    "KAA Gent": {
+        "max_capacity": 20000,
+        "attendance_30th_percentile": 12570.6,
+        "attendance_70th_percentile": 16882.8,
+    },
+    "KV Mechelen": {
+        "max_capacity": 16500,
+        "attendance_30th_percentile": 11229.2,
+        "attendance_70th_percentile": 14486.0,
+    },
+    "KVC Westerlo": {
+        "max_capacity": 8000,
+        "attendance_30th_percentile": 4848.3,
+        "attendance_70th_percentile": 6133.9,
+    },
+    "OH Leuven": {
+        "max_capacity": 10500,
+        "attendance_30th_percentile": 5482.1,
+        "attendance_70th_percentile": 7002.4,
+    },
+    "R Charleroi SC": {
+        "max_capacity": 15000,
+        "attendance_30th_percentile": 6000.0,
+        "attendance_70th_percentile": 8533.0,
+    },
+    "RSC Anderlecht": {
+        "max_capacity": 22500,
+        "attendance_30th_percentile": 18000.0,
+        "attendance_70th_percentile": 20100.0,
+    },
+    "Royal Antwerp": {
+        "max_capacity": 16644,
+        "attendance_30th_percentile": 12000.0,
+        "attendance_70th_percentile": 14941.4,
+    },
+    "Sint-Truiden": {
+        "max_capacity": 14600,
+        "attendance_30th_percentile": 4345.0,
+        "attendance_70th_percentile": 6000.0,
+    },
+    "Standard Liège": {
+        "max_capacity": 27670,
+        "attendance_30th_percentile": 16623.0,
+        "attendance_70th_percentile": 21113.0,
+    },
+    "Union SG": {
+        "max_capacity": 9400,
+        "attendance_30th_percentile": 6173.4,
+        "attendance_70th_percentile": 7256.0,
+    },
+    "Zulte Waregem": {
+        "max_capacity": 12400,
+        "attendance_30th_percentile": 6626.6,
+        "attendance_70th_percentile": 7953.5,
+    },
+}
+
+
 # --- stadium features for the model (uses your team_data dict) ---
 home_team_info = team_data.get(home_team)
 max_capacity_feature = home_team_info["max_capacity"] if home_team_info else 0
@@ -825,79 +900,6 @@ is_derby = int(
 )
 
 
-# Define team-specific data, including stadium capacity and attendance thresholds
-team_data = {
-    "Club Brugge": {
-        "max_capacity": 29062,
-        "attendance_30th_percentile": 19951.5,
-        "attendance_70th_percentile": 24402.5,
-    },
-    "FCV Dender EH": {
-        "max_capacity": 6200,
-        "attendance_30th_percentile": 2459.4,
-        "attendance_70th_percentile": 3561.5,
-    },
-    "Genk": {
-        "max_capacity": 23500,
-        "attendance_30th_percentile": 14907.0,
-        "attendance_70th_percentile": 18352.6,
-    },
-    "KAA Gent": {
-        "max_capacity": 20000,
-        "attendance_30th_percentile": 12570.6,
-        "attendance_70th_percentile": 16882.8,
-    },
-    "KV Mechelen": {
-        "max_capacity": 16500,
-        "attendance_30th_percentile": 11229.2,
-        "attendance_70th_percentile": 14486.0,
-    },
-    "KVC Westerlo": {
-        "max_capacity": 8000,
-        "attendance_30th_percentile": 4848.3,
-        "attendance_70th_percentile": 6133.9,
-    },
-    "OH Leuven": {
-        "max_capacity": 10500,
-        "attendance_30th_percentile": 5482.1,
-        "attendance_70th_percentile": 7002.4,
-    },
-    "R Charleroi SC": {
-        "max_capacity": 15000,
-        "attendance_30th_percentile": 6000.0,
-        "attendance_70th_percentile": 8533.0,
-    },
-    "RSC Anderlecht": {
-        "max_capacity": 22500,
-        "attendance_30th_percentile": 18000.0,
-        "attendance_70th_percentile": 20100.0,
-    },
-    "Royal Antwerp": {
-        "max_capacity": 16644,
-        "attendance_30th_percentile": 12000.0,
-        "attendance_70th_percentile": 14941.4,
-    },
-    "Sint-Truiden": {
-        "max_capacity": 14600,
-        "attendance_30th_percentile": 4345.0,
-        "attendance_70th_percentile": 6000.0,
-    },
-    "Standard Liège": {
-        "max_capacity": 27670,
-        "attendance_30th_percentile": 16623.0,
-        "attendance_70th_percentile": 21113.0,
-    },
-    "Union SG": {
-        "max_capacity": 9400,
-        "attendance_30th_percentile": 6173.4,
-        "attendance_70th_percentile": 7256.0,
-    },
-    "Zulte Waregem": {
-        "max_capacity": 12400,
-        "attendance_30th_percentile": 6626.6,
-        "attendance_70th_percentile": 7953.5,
-    },
-}
 
 # Predict attendance when the user clicks the button
 if st.button("🎯 Predict Attendance"):
