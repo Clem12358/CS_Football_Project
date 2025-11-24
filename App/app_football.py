@@ -215,4 +215,3 @@ def get_weather_data(latitude, longitude, match_date, match_hour):
 # Define stadium coordinates
 stadium_coordinates = {
     'FC
-
