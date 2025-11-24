@@ -132,13 +132,11 @@ st.markdown("""
 ############################## INPUT FIELDS ##############################
 
 # Define available teams
-available_home_teams = ['FC Sion', 'FC St. Gallen', 'FC Winterthur', 'FC Zürich',
-                        'BSC Young Boys', 'FC Luzern', 'Lausanne-Sport', 'Servette FC',
-                        'FC Basel', 'FC Lugano', 'Grasshoppers', 'Yverdon Sport']
+available_home_teams = ["Club Brugge", "Cercle Brugge", "Genk", "RSC Anderlecht", "Union SG", "KAA Gent", "Royal Antwerp", "KVC Westerlo", "Standard Liège", "KV Mechelen", "R Charleroi SC", "OH Leuven", "Sint-Truiden", "FCV Dender EH", "Zulte Waregem", "La Louvière"]
 available_away_teams = available_home_teams
 
 # Fix competition to Super League (no dropdown shown to the user)
-competition = "Super League"
+competition = "Jupiler Super League"
 
 # Card-style container for match setup
 st.markdown(
@@ -220,18 +218,22 @@ def get_weather_data(latitude, longitude, match_date, match_hour):
 
 # Define stadium coordinates
 stadium_coordinates = {
-    'FC Sion': {'latitude': 46.233333, 'longitude': 7.376389},
-    'FC St. Gallen': {'latitude': 47.408333, 'longitude': 9.310278},
-    'FC Winterthur': {'latitude': 47.505278, 'longitude': 8.724167},
-    'FC Zürich': {'latitude': 47.382778, 'longitude': 8.504167},
-    'BSC Young Boys': {'latitude': 46.963056, 'longitude': 7.464722},
-    'FC Luzern': {'latitude': 47.035833, 'longitude': 8.310833},
-    'Lausanne-Sport': {'latitude': 46.537778, 'longitude': 6.614444},
-    'Servette FC': {'latitude': 46.1875, 'longitude': 6.128333},
-    'FC Basel': {'latitude': 47.541389, 'longitude': 7.620833},
-    'FC Lugano': {'latitude': 46.0225, 'longitude': 8.960278},
-    'Grasshoppers': {'latitude': 47.382778, 'longitude': 8.504167},
-    'Yverdon Sport': {'latitude': 46.778056, 'longitude': 6.641111}
+    "Club Brugge": {"lat": 51.19333, "lon": 3.18056},
+    "Cercle Brugge": {"lat": 51.19333, "lon": 3.18056},
+    "Genk": {"lat": 51.00500, "lon": 5.53333},
+    "RSC Anderlecht": {"lat": 50.83417, "lon": 4.29833},
+    "Union SG": {"lat": 50.81733, "lon": 4.32417},
+    "KAA Gent": {"lat": 51.01611, "lon": 3.73417},
+    "Royal Antwerp": {"lat": 51.22500, "lon": 4.46992},
+    "KVC Westerlo": {"lat": 51.09482, "lon": 4.92881},
+    "Standard Liège": {"lat": 50.60597, "lon": 5.53934},
+    "KV Mechelen": {"lat": 51.03718, "lon": 4.48640},
+    "R Charleroi SC": {"lat": 50.41461, "lon": 4.45379},
+    "OH Leuven": {"lat": 50.86833, "lon": 4.69417},
+    "Sint-Truiden": {"lat": 50.81347, "lon": 5.16626},
+    "FCV Dender EH": {"lat": 50.88368, "lon": 4.07118},
+    "Zulte Waregem": {"lat": 50.88306, "lon": 3.42889},
+    "La Louvière": {"lat": 50.47750, "lon": 4.20131}
 }
 
 # Fetch weather data based on home team and match information
@@ -302,7 +304,6 @@ wins_home_team = 0
 
 # Define the input features for the prediction model
 input_features = {
-    'Competition': competition,
     'Matchday': matchday,
     'Time': match_hour,
     'Home Team': home_team,
@@ -347,9 +348,7 @@ expected_columns = [
 ]
 
 # Perform one-hot encoding for categorical columns
-categorical_columns = [
-    "Competition", "Matchday", "Home Team", "Away Team", "Weather", "Weekday"
-]
+categorical_columns = ["Matchday", "Home Team", "Away Team", "Weather", "Weekday"]
 
 # Apply one-hot encoding to input DataFrame
 input_df = pd.get_dummies(pd.DataFrame([input_features]), columns=categorical_columns, drop_first=False)
