@@ -289,15 +289,61 @@ else:
 
 ################### Rankings and Team Data Processing ##############################
 
-# We remove the external league CSV dependency and use neutral placeholder
-# values for team strength / form so the app can run without extra files.
-# (The model still receives the right feature columns, but all set to 0.)
+# user inputs for rankings and last 5 games
+form_col1, form_col2 = st.columns(2)
 
-ranking_home_team = 0
-ranking_away_team = 0
-goals_scored_home_team = 0
-goals_conceded_home_team = 0
-wins_home_team = 0
+with form_col1:
+    ranking_home_team = st.number_input(
+        "Home team ranking (current league position)",
+        min_value=1,
+        max_value=20,
+        value=5,
+    )
+    goals_scored_home_last5 = st.number_input(
+        "Home team – goals scored in last 5 games",
+        min_value=0,
+        max_value=50,
+        value=6,
+    )
+    goals_conceded_home_last5 = st.number_input(
+        "Home team – goals conceded in last 5 games",
+        min_value=0,
+        max_value=50,
+        value=5,
+    )
+    wins_home_last5 = st.number_input(
+        "Home team – number of wins in last 5 games",
+        min_value=0,
+        max_value=5,
+        value=3,
+    )
+
+with form_col2:
+    ranking_away_team = st.number_input(
+        "Away team ranking (current league position)",
+        min_value=1,
+        max_value=20,
+        value=8,
+    )
+    goals_scored_away_last5 = st.number_input(
+        "Away team – goals scored in last 5 games",
+        min_value=0,
+        max_value=50,
+        value=5,
+    )
+    goals_conceded_away_last5 = st.number_input(
+        "Away team – goals conceded in last 5 games",
+        min_value=0,
+        max_value=50,
+        value=4,
+    )
+    wins_away_last5 = st.number_input(
+        "Away team – number of wins in last 5 games",
+        min_value=0,
+        max_value=5,
+        value=2,
+    )
+
 
 
 ################### Preparing Input Data for the Model ##############################
@@ -307,17 +353,37 @@ input_features = {
     'Matchday': matchday,
     'Time': match_hour,
     'Home Team': home_team,
-    'Ranking Home Team': ranking_home_team,
+    'Ranking Home Team': float(ranking_home_team),
     'Away Team': away_team,
-    'Ranking Away Team': ranking_away_team,
+    'Ranking Away Team': float(ranking_away_team),
+
     'Weather': weather_condition if 'weather_condition' in locals() else 'Unknown',
     'Temperature (°C)': float(temperature_at_match) if 'temperature_at_match' in locals() and temperature_at_match is not None else 0.0,
     'Weekday': match_date.strftime("%A"),
     'Month': match_date.month,
     'Day': match_date.day,
-    'Goals Scored in Last 5 Games': goals_scored_home_team,
-    'Goals Conceded in Last 5 Games': goals_conceded_home_team,
-    'Number of Wins in Last 5 Games': wins_home_team,
+
+    # home team recent form
+    'Goals Scored in Last 5 Games': float(goals_scored_home_last5),
+    'Goals Conceded in Last 5 Games': float(goals_conceded_home_last5),
+    'Number of Wins in Last 5 Games': float(wins_home_last5),
+
+    # map last-5 goals into these two features (even if in training they might have had a slightly different meaning)
+    'Home Team Goals Scored': float(goals_scored_home_last5),
+    'Away Team Goals Scored': float(goals_scored_away_last5),
+
+    # stadium features
+    'Derby': float(is_derby),
+    'Max Capacity': float(max_capacity_feature),
+    'Full Roof': full_roof_feature,
+
+    # macro features – if you don’t have live values, keep them neutral for now
+    'GDP_Real_lagQ': 0.0,
+    'CPI_QoQ_Growth_%_lagQ': 0.0,
+    'Employment_Rate_%_lagQ': 0.0,
+
+    # optional: only if model was trained with this column
+    # 'Weather GoodBad': weather_goodbad,
 }
 
 # Convert the input features into a DataFrame
@@ -326,6 +392,7 @@ input_df = pd.DataFrame([input_features])
 # List of expected columns for the model
 # List of expected columns for the models
 expected_columns_with_weather = [
+    expected_columns = [
     'match_id',
     'Time',
     'Ranking Home Team',
@@ -344,6 +411,126 @@ expected_columns_with_weather = [
     'Goals Scored in Last 5 Games',
     'Goals Conceded in Last 5 Games',
     'Number of Wins in Last 5 Games',
+    'Matchday_10',
+    'Matchday_11',
+    'Matchday_12',
+    'Matchday_13',
+    'Matchday_14',
+    'Matchday_15',
+    'Matchday_16',
+    'Matchday_17',
+    'Matchday_18',
+    'Matchday_19',
+    'Matchday_2',
+    'Matchday_20',
+    'Matchday_21',
+    'Matchday_22',
+    'Matchday_23',
+    'Matchday_24',
+    'Matchday_25',
+    'Matchday_26',
+    'Matchday_27',
+    'Matchday_28',
+    'Matchday_29',
+    'Matchday_3',
+    'Matchday_30',
+    'Matchday_31',
+    'Matchday_32',
+    'Matchday_33',
+    'Matchday_34',
+    'Matchday_3rd round 1st leg',
+    'Matchday_3rd round 2nd leg',
+    'Matchday_4',
+    'Matchday_5',
+    'Matchday_6',
+    'Matchday_7',
+    'Matchday_8',
+    'Matchday_9',
+    'Matchday_Final',
+    'Matchday_Group A',
+    'Matchday_Group B',
+    'Matchday_Group D',
+    'Matchday_Group E',
+    'Matchday_Group F',
+    'Matchday_Group H',
+    'Matchday_Group Stage',
+    'Matchday_Qualifying Round 1st leg',
+    'Matchday_Qualifying Round 2nd leg',
+    'Matchday_Quarter-Finals',
+    'Matchday_Quarter-Finals 1st leg',
+    'Matchday_Quarter-Finals 2nd leg',
+    'Matchday_Round of 16',
+    'Matchday_Second Round 1st leg',
+    'Matchday_Second Round 2nd leg',
+    'Matchday_Semi-Finals 1st Leg',
+    'Matchday_Semi-Finals 2nd Leg',
+    'Matchday_Seventh Round',
+    'Matchday_Sixth Round',
+    'Matchday_final 2nd leg',
+    'Matchday_group I',
+    'Matchday_intermediate stage 1st leg',
+    'Matchday_intermediate stage 2nd leg',
+    'Matchday_last 16 1st leg',
+    'Matchday_last 16 2nd leg',
+    'Home Team_Club Brugge',
+    'Home Team_FCV Dender EH',
+    'Home Team_Genk',
+    'Home Team_KAA Gent',
+    'Home Team_KV Mechelen',
+    'Home Team_KVC Westerlo',
+    'Home Team_La Louvière',
+    'Home Team_OH Leuven',
+    'Home Team_R Charleroi SC',
+    'Home Team_RSC Anderlecht',
+    'Home Team_Royal Antwerp',
+    'Home Team_Sint-Truiden',
+    'Home Team_Standard Liège',
+    'Home Team_Union SG',
+    'Home Team_Zulte Waregem',
+    'Away Team_Club Brugge',
+    'Away Team_FCV Dender EH',
+    'Away Team_Genk',
+    'Away Team_KAA Gent',
+    'Away Team_KV Mechelen',
+    'Away Team_KVC Westerlo',
+    'Away Team_La Louvière',
+    'Away Team_OH Leuven',
+    'Away Team_R Charleroi SC',
+    'Away Team_RSC Anderlecht',
+    'Away Team_Royal Antwerp',
+    'Away Team_Sint-Truiden',
+    'Away Team_Standard Liège',
+    'Away Team_Union SG',
+    'Away Team_Unknown',
+    'Away Team_Zulte Waregem',
+    'Weekday_Monday',
+    'Weekday_Saturday',
+    'Weekday_Sunday',
+    'Weekday_Thursday',
+    'Weekday_Tuesday',
+    'Weekday_Wednesday',
+    'Opposing team Category_Bottom ranked',
+    'Opposing team Category_Medium ranked',
+    'Opposing team Category_Not ranked',
+    'Opposing team Category_Top ranked',
+    'Opposing team Category_Unknown',
+    'Home team Category_Bottom ranked',
+    'Home team Category_Medium ranked',
+    'Home team Category_Not ranked',
+    'Home team Category_Top ranked',
+    'Home team Category_Unknown',
+    'Game day_Weekday',
+    'Game day_Weekend',
+    'Time slot_Afternoon',
+    'Time slot_Evening',
+    'Time slot_Night',
+    'Weather GoodBad_Bad',
+    'Weather GoodBad_Good',
+    'Weather_Clear or mostly clear',
+    'Weather_Drizzle',
+    'Weather_Partly cloudy',
+    'Weather_Rainy',
+    'Weather_Snowy',
 ]
 
 expected_columns_without_weather = [
@@ -365,8 +552,120 @@ expected_columns_without_weather = [
     'Goals Scored in Last 5 Games',
     'Goals Conceded in Last 5 Games',
     'Number of Wins in Last 5 Games',
+    'Matchday_10',
+    'Matchday_11',
+    'Matchday_12',
+    'Matchday_13',
+    'Matchday_14',
+    'Matchday_15',
+    'Matchday_16',
+    'Matchday_17',
+    'Matchday_18',
+    'Matchday_19',
+    'Matchday_2',
+    'Matchday_20',
+    'Matchday_21',
+    'Matchday_22',
+    'Matchday_23',
+    'Matchday_24',
+    'Matchday_25',
+    'Matchday_26',
+    'Matchday_27',
+    'Matchday_28',
+    'Matchday_29',
+    'Matchday_3',
+    'Matchday_30',
+    'Matchday_31',
+    'Matchday_32',
+    'Matchday_33',
+    'Matchday_34',
+    'Matchday_3rd round 1st leg',
+    'Matchday_3rd round 2nd leg',
+    'Matchday_4',
+    'Matchday_5',
+    'Matchday_6',
+    'Matchday_7',
+    'Matchday_8',
+    'Matchday_9',
+    'Matchday_Final',
+    'Matchday_Group A',
+    'Matchday_Group B',
+    'Matchday_Group D',
+    'Matchday_Group E',
+    'Matchday_Group F',
+    'Matchday_Group H',
+    'Matchday_Group Stage',
+    'Matchday_Qualifying Round 1st leg',
+    'Matchday_Qualifying Round 2nd leg',
+    'Matchday_Quarter-Finals',
+    'Matchday_Quarter-Finals 1st leg',
+    'Matchday_Quarter-Finals 2nd leg',
+    'Matchday_Round of 16',
+    'Matchday_Second Round 1st leg',
+    'Matchday_Second Round 2nd leg',
+    'Matchday_Semi-Finals 1st Leg',
+    'Matchday_Semi-Finals 2nd Leg',
+    'Matchday_Seventh Round',
+    'Matchday_Sixth Round',
+    'Matchday_final 2nd leg',
+    'Matchday_group I',
+    'Matchday_intermediate stage 1st leg',
+    'Matchday_intermediate stage 2nd leg',
+    'Matchday_last 16 1st leg',
+    'Matchday_last 16 2nd leg',
+    'Home Team_Club Brugge',
+    'Home Team_FCV Dender EH',
+    'Home Team_Genk',
+    'Home Team_KAA Gent',
+    'Home Team_KV Mechelen',
+    'Home Team_KVC Westerlo',
+    'Home Team_La Louvière',
+    'Home Team_OH Leuven',
+    'Home Team_R Charleroi SC',
+    'Home Team_RSC Anderlecht',
+    'Home Team_Royal Antwerp',
+    'Home Team_Sint-Truiden',
+    'Home Team_Standard Liège',
+    'Home Team_Union SG',
+    'Home Team_Zulte Waregem',
+    'Away Team_Club Brugge',
+    'Away Team_FCV Dender EH',
+    'Away Team_Genk',
+    'Away Team_KAA Gent',
+    'Away Team_KV Mechelen',
+    'Away Team_KVC Westerlo',
+    'Away Team_La Louvière',
+    'Away Team_OH Leuven',
+    'Away Team_R Charleroi SC',
+    'Away Team_RSC Anderlecht',
+    'Away Team_Royal Antwerp',
+    'Away Team_Sint-Truiden',
+    'Away Team_Standard Liège',
+    'Away Team_Union SG',
+    'Away Team_Unknown',
+    'Away Team_Zulte Waregem',
+    'Weekday_Monday',
+    'Weekday_Saturday',
+    'Weekday_Sunday',
+    'Weekday_Thursday',
+    'Weekday_Tuesday',
+    'Weekday_Wednesday',
+    'Opposing team Category_Bottom ranked',
+    'Opposing team Category_Medium ranked',
+    'Opposing team Category_Not ranked',
+    'Opposing team Category_Top ranked',
+    'Opposing team Category_Unknown',
+    'Home team Category_Bottom ranked',
+    'Home team Category_Medium ranked',
+    'Home team Category_Not ranked',
+    'Home team Category_Top ranked',
+    'Home team Category_Unknown',
+    'Game day_Weekday',
+    'Game day_Weekend',
+    'Time slot_Afternoon',
+    'Time slot_Evening',
+    'Time slot_Night',
 ]
-
 
 # Perform one-hot encoding for categorical columns (we'll only keep what we need afterwards)
 categorical_columns = ["Matchday", "Home Team", "Away Team", "Weather", "Weekday"]
@@ -386,6 +685,44 @@ input_df_without_weather = encoded_df[expected_columns_without_weather].astype(f
 
 
 ################### Predicting Attendance ##############################
+
+# stadium-related features for the model
+home_team_info = team_data.get(home_team)
+max_capacity_feature = home_team_info["max_capacity"] if home_team_info else 0
+
+# hard-code which stadiums have a (mostly) full roof
+full_roof_map = {
+    "Club Brugge": 0,
+    "Cercle Brugge": 0,
+    "Genk": 0,
+    "RSC Anderlecht": 1,
+    "Union SG": 0,
+    "KAA Gent": 0,
+    "Royal Antwerp": 0,
+    "KVC Westerlo": 0,
+    "Standard Liège": 0,
+    "KV Mechelen": 0,
+    "R Charleroi SC": 0,
+    "OH Leuven": 0,
+    "Sint-Truiden": 0,
+    "FCV Dender EH": 0,
+    "Zulte Waregem": 0,
+    "La Louvière": 0,
+}
+full_roof_feature = float(full_roof_map.get(home_team, 0))
+
+# simple derby flag between specific pairs
+derby_pairs = {
+    ("Club Brugge", "Cercle Brugge"),
+    ("RSC Anderlecht", "Union SG"),
+    # add more if you want
+}
+
+is_derby = int(
+    (home_team, away_team) in derby_pairs
+    or (away_team, home_team) in derby_pairs
+)
+
 
 # Define team-specific data, including stadium capacity and attendance thresholds
 team_data = {
@@ -471,6 +808,21 @@ if st.button("🎯 Predict Attendance"):
         # Fallback: use the model trained without live weather information
         prediction = model_without_weather.predict(input_df_without_weather)[0] * 100
         weather_status = "Weather data unavailable. Prediction made without weather information."
+
+    
+# classify weather as good / bad (for future use)
+good_conditions = ["Clear or mostly clear", "Partly cloudy"]
+bad_conditions = ["Rainy", "Drizzle", "Snowy"]
+
+if 'weather_condition' in locals() and weather_condition is not None:
+    if weather_condition in good_conditions:
+        weather_goodbad = 1.0   # Good
+    elif weather_condition in bad_conditions:
+        weather_goodbad = 0.0   # Bad
+    else:
+        weather_goodbad = 0.5   # Unknown / neutral
+else:
+    weather_goodbad = 0.5
 
     
     # Calculate absolute attendance based on prediction percentage and stadium capacity
