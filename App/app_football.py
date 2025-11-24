@@ -331,18 +331,7 @@ with form_col2:
         max_value=50,
         value=5,
     )
-    goals_conceded_away_last5 = st.number_input(
-        "Away team – goals conceded in last 5 games",
-        min_value=0,
-        max_value=50,
-        value=4,
-    )
-    wins_away_last5 = st.number_input(
-        "Away team – wins in last 5 games",
-        min_value=0,
-        max_value=5,
-        value=2,
-    )
+
 
 # Define team-specific data, including stadium capacity and attendance thresholds
 team_data = {
@@ -865,13 +854,24 @@ input_df_without_weather = encoded_df[expected_columns_without_weather].astype(f
 # Predict attendance when the user clicks the button
 if st.button("🎯 Predict Attendance"):
 
-    # 1) Choose the right model depending on live weather availability
-    if 'temperature_at_match' in locals() and temperature_at_match is not None:
+    # 1) Decide if we can reliably use the weather model
+    use_weather_model = (
+        'temperature_at_match' in locals()
+        and temperature_at_match is not None
+        and 'weather_condition' in locals()
+        and weather_condition is not None
+        and weather_condition != "Unknown"
+    )
+
+    if use_weather_model:
         prediction = model_with_weather.predict(input_df_with_weather)[0] * 100
         weather_status = "Weather data used for prediction."
     else:
         prediction = model_without_weather.predict(input_df_without_weather)[0] * 100
-        weather_status = "Weather data unavailable. Prediction made without weather information."
+        weather_status = (
+            "Weather data unavailable or unreliable. "
+            "Prediction made without weather information."
+        )
 
     # 2) Get stadium info for the home team
     home_team_name = home_team
