@@ -19,7 +19,8 @@ def load_model(model_path):
         return pickle.load(file)
 
 # Resolve paths relative to this file (App/app_football.py)
-BASE_DIR = Path(__file__).resolve().parent.parent  # project root
+APP_DIR = Path(__file__).resolve().parent       # App/ folder
+BASE_DIR = APP_DIR.parent                       # project root
 MODELS_DIR = BASE_DIR / "Models"
 
 # Load models
@@ -286,50 +287,15 @@ else:
 
 ################### Rankings and Team Data Processing ##############################
 
-# Load league data from a CSV file
-league_data = pd.read_csv('new_league_data.csv')
+# We remove the external league CSV dependency and use neutral placeholder
+# values for team strength / form so the app can run without extra files.
+# (The model still receives the right feature columns, but all set to 0.)
 
-# Retrieve data for the selected home team
-home_team_data = league_data[league_data['Team'] == home_team]
-
-# Handle the case where the home team is not found in the data
-if home_team_data.empty:
-    st.error(f"Home team '{home_team}' not found in the data.")
-else:
-    home_team_data = home_team_data.iloc[0]
-
-# Handle the away team data; assign default values if "Unknown"
-if away_team == "Unknown":
-    ranking_away_team = 0  # Default ranking for unknown away team
-    goals_scored_away_team = 0
-    goals_conceded_away_team = 0
-    wins_away_team = 0
-else:
-    away_team_data = league_data[league_data['Team'] == away_team]
-    if away_team_data.empty:
-        st.error(f"Away team '{away_team}' not found in the data.")
-        ranking_away_team = 0
-        goals_scored_away_team = 0
-        goals_conceded_away_team = 0
-        wins_away_team = 0
-    else:
-        away_team_data = away_team_data.iloc[0]
-        ranking_away_team = away_team_data['Ranking']
-        goals_scored_away_team = away_team_data['Goals_Scored_in_Last_5_Games']
-        goals_conceded_away_team = away_team_data['Goals_Conceded_in_Last_5_Games']
-        wins_away_team = away_team_data['Number_of_Wins_in_Last_5_Games']
-
-# Retrieve relevant statistics for the home team if the data exists
-if not isinstance(home_team_data, pd.Series) or home_team_data.empty:
-    ranking_home_team = 0
-    goals_scored_home_team = 0
-    goals_conceded_home_team = 0
-    wins_home_team = 0
-else:
-    ranking_home_team = home_team_data['Ranking']
-    goals_scored_home_team = home_team_data['Goals_Scored_in_Last_5_Games']
-    goals_conceded_home_team = home_team_data['Goals_Conceded_in_Last_5_Games']
-    wins_home_team = home_team_data['Number_of_Wins_in_Last_5_Games']
+ranking_home_team = 0
+ranking_away_team = 0
+goals_scored_home_team = 0
+goals_conceded_home_team = 0
+wins_home_team = 0
 
 
 ################### Preparing Input Data for the Model ##############################
@@ -525,118 +491,4 @@ if st.button("🎯 Predict Attendance"):
     st.info(weather_status)
 
 
-################### Additional Information: League Table #################################
 
-# Function to generate icons for game results
-def game_result_icons(row):
-    # Map result to an emoji
-    result_mapping = {"Win": "✅", "Lose": "❌", "Tie": "➖"}
-    # Create a string of icons for the last 5 game results
-    return "".join(result_mapping.get(row[col], "❓") for col in [
-        "Last_1_Game_Result",
-        "Last_2_Game_Result",
-        "Last_3_Game_Result",
-        "Last_4_Game_Result",
-        "Last_5_Game_Result"
-    ])
-
-# Add a column with icons for the last 5 games
-league_data["Last_5_Games_Icons"] = league_data.apply(game_result_icons, axis=1)
-
-# Create a filtered league table with selected columns
-league_table = league_data[[
-    "Ranking", "Team", "Points", "Games_Played", 
-    "Total_Goals_Scored", "Total_Goals_Conceded", 
-    "Last_5_Games_Icons"
-]]
-
-# Sort the league table by ranking (ascending order)
-league_table = league_table.sort_values(by="Ranking", ascending=True)
-
-# Rename columns to include emojis for better readability
-league_table = league_table.rename(columns={
-    "Ranking": "🏅 Ranking",
-    "Team": "🏟️ Team",
-    "Points": "🎯 Points",
-    "Games_Played": "🕒 Games Played",
-    "Total_Goals_Scored": "⚽ Total Goals Scored",
-    "Total_Goals_Conceded": "🛡️ Total Goals Conceded",
-    "Last_5_Games_Icons": "📊 Last 5 Games"
-})
-
-
-################### Styling and HTML for League Table #################################
-
-# Define CSS for styling the table
-table_css = """
-<style>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        border: 1px solid #ddd;
-        font-family: Arial, sans-serif;
-        margin: 20px 0;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-    }
-    th {
-        background-color: #f4f4f4;
-        font-weight: bold;
-        font-size: 14px;
-        color: #333;
-    }
-    tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-    tr:nth-child(odd) {
-        background-color: #ffffff;
-    }
-    tr:hover {
-        background-color: #f1f1f1;
-    }
-    td {
-        font-size: 13px;
-        color: #555;
-    }
-    .highlight-home {
-        background-color: rgba(0, 123, 255, 0.4) !important;
-        font-weight: bold !important;
-    }
-    .highlight-away {
-        background-color: rgba(0, 123, 255, 0.15) !important;
-    }
-</style>
-"""
-
-# Function to add a CSS class to highlight rows for home or away teams
-def highlight_teams_html(row):
-    if row["🏟️ Team"] == home_team:
-        return '<tr class="highlight-home">'
-    elif row["🏟️ Team"] == away_team:
-        return '<tr class="highlight-away">'
-    return "<tr>"
-
-# Generate HTML table with CSS styling and highlighted rows
-table_html = '<table>'
-table_html += '<thead><tr>' + ''.join(f'<th>{col}</th>' for col in league_table.columns) + '</tr></thead>'
-table_html += '<tbody>'
-for _, row in league_table.iterrows():
-    table_html += highlight_teams_html(row)
-    table_html += ''.join(f'<td>{row[col]}</td>' for col in league_table.columns)
-    table_html += '</tr>'
-table_html += '</tbody></table>'
-
-# Combine CSS and HTML
-styled_table_html = table_css + table_html
-
-
-################### Toggle Button for League Table #################################
-
-# Create an expander for the league table
-with st.expander("🏆 Show League Table"):
-    st.markdown(styled_table_html, unsafe_allow_html=True)
