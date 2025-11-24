@@ -482,7 +482,6 @@ input_df = pd.DataFrame([input_features])
 # List of expected columns for the model
 # List of expected columns for the models
 expected_columns_with_weather = [
-    expected_columns = [
     'match_id',
     'Time',
     'Ranking Home Team',
