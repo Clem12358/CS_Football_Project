@@ -8,6 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import base64
 import io
+from pathlib import Path
 
 
 ############################## MODELS & STREAMLIT CONFIGURATION ##############################
@@ -17,9 +18,13 @@ def load_model(model_path):
     with open(model_path, 'rb') as file:
         return pickle.load(file)
 
+# Resolve paths relative to this file (App/app_football.py)
+BASE_DIR = Path(__file__).resolve().parent.parent  # project root
+MODELS_DIR = BASE_DIR / "Models"
+
 # Load models
-model_with_weather = load_model("./finalized_model_with_weather (1).sav")
-model_without_weather = load_model("./finalized_model_without_weather.sav")
+model_with_weather = load_model(MODELS_DIR / "finalized_model_with_weather (1).sav")
+model_without_weather = load_model(MODELS_DIR / "finalized_model_without_weather.sav")
 
 # Configure Streamlit page
 st.set_page_config(
