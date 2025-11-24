@@ -324,31 +324,65 @@ input_features = {
 input_df = pd.DataFrame([input_features])
 
 # List of expected columns for the model
-expected_columns = [
-    'Time', 'Ranking Home Team', 'Ranking Away Team', 'Attendance', 'Temperature (°C)', 'Date', 'Month', 'Season', 'Stadium', 'Max Capacity', 'City', 'Province', 'Full Roof', 'PercentageAttendance', 'GDP_Real_lagQ', 'CPI_QoQ_Growth_%_lagQ', 'Employment_Rate_%_lagQ', 'Home Team Goals Scored', 'Away Team Goals Scored', 'Match Type', 'Home Team Outcome', 'Away Team Outcome', 'Day', 'Goals Scored in Last 5 Games', 'Goals Conceded in Last 5 Games', 'Number of Wins in Last 5 Games', 'Derby', 'Matchday_10', 'Matchday_11', 'Matchday_12', 'Matchday_13', 'Matchday_14', 'Matchday_15', 'Matchday_16', 'Matchday_17', 'Matchday_18', 'Matchday_19', 'Matchday_2', 'Matchday_20', 'Matchday_21', 'Matchday_22', 'Matchday_23', 'Matchday_24', 'Matchday_25', 'Matchday_26', 'Matchday_27', 'Matchday_28', 'Matchday_29', 'Matchday_3', 'Matchday_30', 'Matchday_31', 'Matchday_32', 'Matchday_33', 'Matchday_34', 'Matchday_4', 'Matchday_5', 'Matchday_6', 'Matchday_7', 'Matchday_8', 'Matchday_9', 'Matchday_Final', 'Matchday_final 2nd leg', 'Home Team_Club Brugge', 'Home Team_FCV Dender EH', 'Home Team_Genk', 'Home Team_KAA Gent', 'Home Team_KV Mechelen', 'Home Team_KVC Westerlo', 'Home Team_OH Leuven', 'Home Team_R Charleroi SC', 'Home Team_RSC Anderlecht', 'Home Team_Royal Antwerp', 'Home Team_Sint-Truiden', 'Home Team_Standard Liège', 'Home Team_Union SG', 'Home Team_Zulte Waregem', 'Away Team_Club Brugge', 'Away Team_FCV Dender EH', 'Away Team_Genk', 'Away Team_KAA Gent', 'Away Team_KV Mechelen', 'Away Team_KVC Westerlo', 'Away Team_OH Leuven', 'Away Team_R Charleroi SC', 'Away Team_RSC Anderlecht', 'Away Team_Royal Antwerp', 'Away Team_Sint-Truiden', 'Away Team_Standard Liège', 'Away Team_Union SG', 'Away Team_Unknown', 'Away Team_Zulte Waregem', 'Weekday_Monday', 'Weekday_Saturday', 'Weekday_Sunday', 'Weekday_Thursday', 'Weekday_Tuesday', 'Weekday_Wednesday', 'Opposing team Category_Bottom ranked', 'Opposing team Category_Medium ranked', 'Opposing team Category_Not ranked', 'Opposing team Category_Top ranked', 'Opposing team Category_Unknown', 'Home team Category_Bottom ranked', 'Home team Category_Medium ranked', 'Home team Category_Not ranked', 'Home team Category_Top ranked', 'Home team Category_Unknown', 'Game day_Weekday', 'Game day_Weekend', 'Time slot_Afternoon', 'Time slot_Evening', 'Time slot_Night', 'Weather GoodBad_Bad', 'Weather GoodBad_Good', 'Weather_Clear or mostly clear', 'Weather_Drizzle', 'Weather_Partly cloudy', 'Weather_Rainy', 'Weather_Snowy', 'match_id'
+# List of expected columns for the models
+expected_columns_with_weather = [
+    'match_id',
+    'Time',
+    'Ranking Home Team',
+    'Ranking Away Team',
+    'Temperature (°C)',
+    'Month',
+    'Day',
+    'Derby',
+    'Max Capacity',
+    'Full Roof',
+    'GDP_Real_lagQ',
+    'CPI_QoQ_Growth_%_lagQ',
+    'Employment_Rate_%_lagQ',
+    'Home Team Goals Scored',
+    'Away Team Goals Scored',
+    'Goals Scored in Last 5 Games',
+    'Goals Conceded in Last 5 Games',
+    'Number of Wins in Last 5 Games',
 ]
 
-# Perform one-hot encoding for categorical columns
+expected_columns_without_weather = [
+    'match_id',
+    'Time',
+    'Ranking Home Team',
+    'Ranking Away Team',
+    'Temperature (°C)',
+    'Month',
+    'Day',
+    'Derby',
+    'Max Capacity',
+    'Full Roof',
+    'GDP_Real_lagQ',
+    'CPI_QoQ_Growth_%_lagQ',
+    'Employment_Rate_%_lagQ',
+    'Home Team Goals Scored',
+    'Away Team Goals Scored',
+    'Goals Scored in Last 5 Games',
+    'Goals Conceded in Last 5 Games',
+    'Number of Wins in Last 5 Games',
+]
+
+
+# Perform one-hot encoding for categorical columns (we'll only keep what we need afterwards)
 categorical_columns = ["Matchday", "Home Team", "Away Team", "Weather", "Weekday"]
 
-# Apply one-hot encoding to input DataFrame
-input_df = pd.get_dummies(pd.DataFrame([input_features]), columns=categorical_columns, drop_first=False)
+encoded_df = pd.get_dummies(pd.DataFrame([input_features]), columns=categorical_columns, drop_first=False)
 
-# Add missing columns as zeros for any expected columns not generated during one-hot encoding
-for col in expected_columns:
-    if col not in input_df.columns:
-        input_df[col] = 0
+# Make sure all expected columns exist (for both models); if missing, fill with 0
+all_expected = list(set(expected_columns_with_weather + expected_columns_without_weather))
+for col in all_expected:
+    if col not in encoded_df.columns:
+        encoded_df[col] = 0
 
-# Ensure the DataFrame columns are in the correct order
-input_df = input_df[expected_columns]
+# Build the two final DataFrames with the correct column order and dtype
+input_df_with_weather = encoded_df[expected_columns_with_weather].astype(float)
+input_df_without_weather = encoded_df[expected_columns_without_weather].astype(float)
 
-# Ensure all values are of type float for compatibility with the model
-input_df = input_df.astype(float)
-
-# Check for any missing columns that could break the model
-missing_columns = [col for col in expected_columns if col not in input_df.columns]
-if missing_columns:
-    raise ValueError(f"Fehlende Spalten in den Eingabedaten: {missing_columns}")
 
 
 ################### Predicting Attendance ##############################
@@ -429,20 +463,15 @@ team_data = {
 
 # Predict attendance when the user clicks the button
 if st.button("🎯 Predict Attendance"):
-    # Use weather-based model if weather data is available
+    # Use weather-based model if we successfully fetched temperature
     if 'temperature_at_match' in locals() and temperature_at_match is not None:
-        prediction = model_with_weather.predict(input_df)[0] * 100
+        prediction = model_with_weather.predict(input_df_with_weather)[0] * 100
         weather_status = "Weather data used for prediction."
-
-    # Drop weather-related columns for the fallback model
     else:
-        weather_columns_to_drop = [
-            'Weather_Drizzle', 'Weather_Snowy', 'Weather_Partly cloudy', 
-            'Temperature (°C)', 'Weather_Rainy'
-        ]
-        input_df_no_weather = input_df.drop(columns=[col for col in weather_columns_to_drop if col in input_df.columns])
-        prediction = model_without_weather.predict(input_df_no_weather)[0] * 100
+        # Fallback: use the model trained without live weather information
+        prediction = model_without_weather.predict(input_df_without_weather)[0] * 100
         weather_status = "Weather data unavailable. Prediction made without weather information."
+
     
     # Calculate absolute attendance based on prediction percentage and stadium capacity
     home_team_name = home_team
