@@ -862,83 +862,35 @@ input_df_without_weather = encoded_df[expected_columns_without_weather].astype(f
 
 ################### Predicting Attendance ##############################
 
-# stadium-related features for the model
-home_team_info = team_data.get(home_team)
-max_capacity_feature = home_team_info["max_capacity"] if home_team_info else 0
-
-# hard-code which stadiums have a (mostly) full roof
-full_roof_map = {
-    "Club Brugge": 0,
-    "Cercle Brugge": 0,
-    "Genk": 0,
-    "RSC Anderlecht": 1,
-    "Union SG": 0,
-    "KAA Gent": 0,
-    "Royal Antwerp": 0,
-    "KVC Westerlo": 0,
-    "Standard Liège": 0,
-    "KV Mechelen": 0,
-    "R Charleroi SC": 0,
-    "OH Leuven": 0,
-    "Sint-Truiden": 0,
-    "FCV Dender EH": 0,
-    "Zulte Waregem": 0,
-    "La Louvière": 0,
-}
-full_roof_feature = float(full_roof_map.get(home_team, 0))
-
-# simple derby flag between specific pairs
-derby_pairs = {
-    ("Club Brugge", "Cercle Brugge"),
-    ("RSC Anderlecht", "Union SG"),
-    # add more if you want
-}
-
-is_derby = int(
-    (home_team, away_team) in derby_pairs
-    or (away_team, home_team) in derby_pairs
-)
-
-
-
 # Predict attendance when the user clicks the button
 if st.button("🎯 Predict Attendance"):
-    # Use weather-based model if we successfully fetched temperature
+
+    # 1) Choose the right model depending on live weather availability
     if 'temperature_at_match' in locals() and temperature_at_match is not None:
         prediction = model_with_weather.predict(input_df_with_weather)[0] * 100
         weather_status = "Weather data used for prediction."
     else:
-        # Fallback: use the model trained without live weather information
         prediction = model_without_weather.predict(input_df_without_weather)[0] * 100
         weather_status = "Weather data unavailable. Prediction made without weather information."
 
-    
-# classify weather as good / bad (for future use)
-good_conditions = ["Clear or mostly clear", "Partly cloudy"]
-bad_conditions = ["Rainy", "Drizzle", "Snowy"]
-
-if 'weather_condition' in locals() and weather_condition is not None:
-    if weather_condition in good_conditions:
-        weather_goodbad = 1.0   # Good
-    elif weather_condition in bad_conditions:
-        weather_goodbad = 0.0   # Bad
-    else:
-        weather_goodbad = 0.5   # Unknown / neutral
-else:
-    weather_goodbad = 0.5
-
-    
-    # Calculate absolute attendance based on prediction percentage and stadium capacity
+    # 2) Get stadium info for the home team
     home_team_name = home_team
     team_info = team_data.get(home_team_name, None)
 
-    if team_info:
+    if not team_info:
+        st.error("No stadium information found for this home team.")
+        st.info(weather_status)
+    else:
         max_capacity = team_info["max_capacity"]
-        predicted_attendance = min(((prediction / 100) * max_capacity).round(), max_capacity)
         attendance_30th = team_info["attendance_30th_percentile"]
         attendance_70th = team_info["attendance_70th_percentile"]
 
-        # Determine attendance status based on thresholds
+        # 3) Convert predicted percentage into absolute attendance
+        predicted_attendance = min(
+            ((prediction / 100) * max_capacity).round(),
+            max_capacity
+        )
+
         if predicted_attendance < attendance_30th:
             attendance_status = "Low attendance 🚶‍♂️"
         elif predicted_attendance > attendance_70th:
@@ -946,71 +898,70 @@ else:
         else:
             attendance_status = "Normal attendance ⚖️"
 
-        # Display attendance status in Streamlit
         st.success(f"Attendance Status: {attendance_status}")
 
-        # Create a horizontal bar chart to visualize attendance prediction
+        # 4) Build horizontal bar chart
         fig, ax = plt.subplots(figsize=(10, 2.5))
         ax.barh(
-            y=[0], 
-            width=[predicted_attendance / max_capacity], 
+            y=[0],
+            width=[predicted_attendance / max_capacity],
             height=0.5,
             edgecolor="black",
-            alpha=0.8 
+            alpha=0.8,
         )
 
-        # Add vertical lines for attendance thresholds
-        ax.axvline(x=attendance_30th / max_capacity, linestyle="--", label="30th Percentile", linewidth=1.2)
-        ax.axvline(x=attendance_70th / max_capacity, linestyle="--", label="70th Percentile", linewidth=1.2)
+        # Threshold lines
+        ax.axvline(x=attendance_30th / max_capacity, linestyle="--",
+                   label="30th Percentile", linewidth=1.2)
+        ax.axvline(x=attendance_70th / max_capacity, linestyle="--",
+                   label="70th Percentile", linewidth=1.2)
 
-        # Customize the chart background and frame
+        # Styling
         fig.patch.set_facecolor("#f8f9fa")
         ax.set_facecolor("#ffffff")
-        ax.spines['top'].set_visible(False)  
-        ax.spines['right'].set_visible(False) 
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
 
-        # Configure axis limits and labels
-        ax.set_xlim(0, 1) 
+        ax.set_xlim(0, 1)
         ax.set_xticks([0, 0.25, 0.5, 0.75, 1])
-        ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=12) 
+        ax.set_xticklabels(["0%", "25%", "50%", "75%", "100%"], fontsize=12)
         ax.set_yticks([])
 
-        # Add a legend and adjust its position
         ax.legend(
-            loc="lower center", 
+            loc="lower center",
             bbox_to_anchor=(0.5, -0.4),
-            ncol=2, 
+            ncol=2,
             fontsize=12,
-            frameon=False 
+            frameon=False,
         )
 
-        # Add a clear title for the chart
         ax.set_title(
-            f"Predicted Attendance: {predicted_attendance:.0f} of {max_capacity} ({prediction:.2f}%)", 
+            f"Predicted Attendance: {predicted_attendance:.0f} of {max_capacity} ({prediction:.2f}%)",
             fontsize=14,
             pad=15,
-            color="#333333" 
+            color="#333333",
         )
 
-        # Save the chart to a buffer for embedding
+        # 5) Render chart in Streamlit
         buf = io.BytesIO()
-        fig.savefig(buf, format="png", bbox_inches="tight", dpi=100) 
+        fig.savefig(buf, format="png", bbox_inches="tight", dpi=100)
         buf.seek(0)
         encoded_image = base64.b64encode(buf.read()).decode("utf-8")
 
-        # Embed the chart into the Streamlit app
         st.markdown(
             f"""
-            <div style="background-color: #f9f9fa; padding: 20px; border-radius: 10px; border: 1px solid #ddd; 
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="background-color: #f9f9fa; padding: 20px; border-radius: 10px;
+                        border: 1px solid #ddd; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
                 <h3 style="text-align: center; color: #003366;">Attendance Prediction Details</h3>
                 <img src="data:image/png;base64,{encoded_image}" style="display: block; margin: auto;"/>
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
-    st.info(weather_status)
+        # 6) Show whether weather was used or not
+        st.info(weather_status)
+
 
 
 
