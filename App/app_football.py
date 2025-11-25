@@ -141,6 +141,13 @@ label,
     color: #000000 !important;
 }
 
+/* force button text to white (streamlit wraps text in p/span) */
+.stButton > button,
+.stButton > button * {
+  color: #ffffff !important;
+}
+
+
     
     </style>
 """, unsafe_allow_html=True)
