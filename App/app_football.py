@@ -29,7 +29,7 @@ model_without_weather = load_model(MODELS_DIR / "finalized_model_without_weather
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="Stadium Attendance Prediction",  # Title of the app
+    page_title="Stadium Attendance Prediction For the Jupiler Pro League",  # Title of the app
     page_icon="🏟️",  # Icon for the app
     layout="wide"  # Use the entire width of the page
 )
@@ -54,15 +54,20 @@ st.markdown("""
     }
 
     .multicolor-title {
-        text-align: center;
-        font-size: 48px;
-        font-weight: 800;
-        margin-top: -60px;
-        background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #5f27cd);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.12);
-    }
+    text-align: center;
+    font-size: 48px;
+    font-weight: 800;
+    margin-top: -60px;
+
+    /* force black title (even in dark mode) */
+    color: #000000 !important;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: #000000 !important;
+
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.12);
+}
+
 
     .section-card {
         background-color: #ffffff;
@@ -112,6 +117,31 @@ st.markdown("""
         color: white;
         transition: all 0.3s ease;
     }
+
+    /* force ALL widget labels to black (dark mode included) */
+label,
+[data-testid="stWidgetLabel"] label,
+[data-testid="stSelectbox"] label,
+[data-testid="stSlider"] label,
+[data-testid="stDateInput"] label,
+[data-testid="stTimeInput"] label,
+[data-testid="stNumberInput"] label,
+[data-testid="stTextInput"] label,
+[data-testid="stTextArea"] label {
+    color: #000000 !important;
+}
+
+/* force general text (markdown, captions, etc.) to black */
+[data-testid="stMarkdownContainer"],
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] span,
+.stMarkdown,
+.stMarkdown p,
+.stMarkdown span {
+    color: #000000 !important;
+}
+
+    
     </style>
 """, unsafe_allow_html=True)
 
