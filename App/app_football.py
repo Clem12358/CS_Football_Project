@@ -174,18 +174,6 @@ available_away_teams = available_home_teams
 # Fix competition to Super League (no dropdown shown to the user)
 competition = "Jupiler Super League"
 
-# Card-style container for match setup
-st.markdown(
-    """
-    <div class="section-card">
-        <h3 style="margin-bottom:0.5rem; color:#003366;">Match setup</h3>
-        <p style="margin-top:0.2rem; font-size:14px; color:#777777;">
-            Choose the home and away team, then set the matchday, date and kickoff time.
-        </p>
-    """,
-    unsafe_allow_html=True,
-)
-
 # First row: teams
 teams_col1, teams_col2 = st.columns([1.3, 1])
 with teams_col1:
