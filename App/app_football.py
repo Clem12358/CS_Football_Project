@@ -467,17 +467,20 @@ full_roof_map = {
 }
 full_roof_feature = float(full_roof_map.get(home_team, 0))
 
-# --- simple derby flag between specific pairs ---
+# --- derby flag (based on your derby list) ---
 derby_pairs = {
-    ("Club Brugge", "Cercle Brugge"),
-    ("RSC Anderlecht", "Union SG"),
-    # add more if you want
+    ("Club Brugge", "Cercle Brugge"),      # Bruges Derby
+    ("RSC Anderlecht", "Union SG"),        # Brussels Derby
+    ("Genk", "Sint-Truiden"),              # Limburg Derby
+    ("Standard Liège", "R Charleroi SC"),  # Walloon Derby
+    ("OH Leuven", "KV Mechelen"),          # Dijle Derby
 }
 
 is_derby = int(
     (home_team, away_team) in derby_pairs
     or (away_team, home_team) in derby_pairs
 )
+
 
 # --- team categories from ranking (for the Home/Opposing team Category_* dummies) ---
 def categorize_team(r):
