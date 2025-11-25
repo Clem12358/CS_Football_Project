@@ -150,10 +150,10 @@ label,
 
 # Display the app's main title and description
 st.markdown("""
-    <h1 class="multicolor-title">🏟️ Stadium Attendance Prediction App</h1>
+    <h1 class="multicolor-title">🏟️ Stadium Attendance Prediction For the Jupiler Pro League 🇧🇪⚽</h1>
     <div style="text-align: center; padding: 7px; padding-top:20px; background-color: #ffffff; border-radius: 15px; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); margin-bottom:20px">
-        <p style="font-size: 20px; color: #555555;">🎉⚽ This app predicts stadium attendance based on various factors 
+        <p style="font-size: 20px; color: #555555;">🎉⚽ This app predicts stadium attendance based on numerous factors 
         such as the teams playing, weather conditions, and matchday info. Use the inputs below to get the prediction!</p>
     </div>
 """, unsafe_allow_html=True)
