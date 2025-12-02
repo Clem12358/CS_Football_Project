@@ -507,9 +507,10 @@ opposing_team_category = categorize_team(ranking_away_team)
 game_day = "Weekend" if match_date.weekday() >= 5 else "Weekday"
 
 # --- time slot (Afternoon / Evening / Night) for Time slot_* dummies ---
-if 12 <= match_hour < 17:
+# Must match the notebook logic: h < 18 = Afternoon, 18 <= h < 20 = Evening, else Night
+if match_hour < 18:
     time_slot = "Afternoon"
-elif 17 <= match_hour < 22:
+elif 18 <= match_hour < 20:
     time_slot = "Evening"
 else:
     time_slot = "Night"
